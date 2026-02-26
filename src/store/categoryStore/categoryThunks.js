@@ -14,6 +14,7 @@ export const create_thunk = () => {
     dispatch(set_loading_store(true));
 
     const { name, slug, image, parent, is_active, order, meta_title, meta_description } = getState().categoryStore;
+    const token    = getState().authStore.accessToken;
 
     try {
       const form = new FormData();
@@ -26,7 +27,9 @@ export const create_thunk = () => {
       if (meta_description) form.append('meta_description', meta_description.trim());
       if (image instanceof File) form.append('image', image);
 
-      const response = await api.post('api/category/create/', form);
+      const response = await api.post('api/category/create/', form, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       dispatch(close_modal_store());
       dispatch(clear_form_store());
@@ -57,9 +60,11 @@ export const get_all_thunk = () => {
     dispatch(set_loading_store(true));
 
     const { current_page, page_size } = getState().categoryStore;
+    const token    = getState().authStore.accessToken;
 
     try {
       const response = await api.get('api/category/all/', {
+        headers: { Authorization: `Bearer ${token}` },
         params: { page: current_page + 1, page_size },
       });
       dispatch(get_all_records_store({ records: response.data.results }));
@@ -88,6 +93,7 @@ export const update_thunk = () => {
     dispatch(set_loading_store(true));
 
     const { id, name, slug, image, parent, is_active, order, meta_title, meta_description, selected_record } = getState().categoryStore;
+    const token    = getState().authStore.accessToken;
 
     try {
       const form = new FormData();
@@ -100,7 +106,9 @@ export const update_thunk = () => {
       if (meta_description) form.append('meta_description', meta_description.trim());
       if (image instanceof File) form.append('image', image);
 
-      const response = await api.put(`api/category/${id}/update/`, form);
+      const response = await api.put(`api/category/${id}/update/`, form, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       // Si se quitó la imagen y el registro tenía una → eliminarla de S3
       if (image === null && selected_record?.image) {
@@ -134,9 +142,11 @@ export const update_thunk = () => {
 export const delete_thunk = (id) => {
   return async (dispatch, getState) => {
     dispatch(set_loading_store(true));
-
+    const token    = getState().authStore.accessToken;
     try {
-      await api.delete(`api/category/${id}/delete/`);
+      await api.delete(`api/category/${id}/delete/`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       alertDeleted('Categoría');
       dispatch(get_all_thunk());
     } catch (error) {
@@ -174,7 +184,7 @@ export const get_filter_thunk = () => {
     dispatch(set_loading_store(true));
 
     const { filter_search, filter_status, filter_deleted, current_page, page_size } = getState().categoryStore;
-
+    const token    = getState().authStore.accessToken;
     let is_active;
     if      (filter_status === 'active')   is_active = true;
     else if (filter_status === 'inactive') is_active = false;
@@ -188,6 +198,7 @@ export const get_filter_thunk = () => {
           page:      current_page + 1,
           page_size,
         },
+          headers: { Authorization: `Bearer ${token}` },
       });
       dispatch(get_all_records_store({ records: response.data.results }));
       dispatch(set_pagination_store({ total_count: response.data.count }));

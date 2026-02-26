@@ -10,6 +10,7 @@ import PersonIcon from '@mui/icons-material/Person';
 import PaletteIcon from '@mui/icons-material/Palette';
 import StorefrontIcon from '@mui/icons-material/Storefront';
 import CategoryIcon from '@mui/icons-material/Category';
+import TuneIcon from '@mui/icons-material/Tune';
 import { useThemeSettings } from '../../theme/ThemeContext';
 
 const SIDEBAR_WIDTH = 280;
@@ -23,6 +24,7 @@ const NAV_GROUPS = [
       { label: 'Usuarios',    path: '/usuarios',   icon: <PeopleIcon /> },
       { label: 'Clientes',    path: '/clientes',   icon: <PersonIcon /> },
       { label: 'Categorías',  path: '/categorias', icon: <CategoryIcon /> },
+      { label: 'Atributos',   path: '/atributos',  icon: <TuneIcon /> },
     ],
   },
   {
