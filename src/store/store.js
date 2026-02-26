@@ -4,6 +4,7 @@ import { globalStore } from './globalStore/globalStore'
 import { authStore } from './authStore/authStore'
 import { categoryStore } from './categoryStore/categoryStore'
 import { attributeStore } from './attributeStore/attributeStore'
+import { attributeValuesStore } from './attributeValuesStore/attributeValuesStore'
 
 export const store = configureStore({
   reducer: {
@@ -12,5 +13,6 @@ export const store = configureStore({
     authStore: authStore.reducer,
     categoryStore: categoryStore.reducer,
     attributeStore: attributeStore.reducer,
+    attributeValuesStore: attributeValuesStore.reducer,
     },
 })
