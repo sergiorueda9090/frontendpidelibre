@@ -3,6 +3,11 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
+import { store } from './store/store';
+import { injectStore } from './services/axiosInstance';
+
+// Inyecta el store en la instancia Axios para los interceptores de auth
+injectStore(store);
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
