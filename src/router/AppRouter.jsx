@@ -8,6 +8,7 @@ import Clients          from '../features/clients/Clients';
 import Categories       from '../features/categories/Categories';
 import Attributes       from '../features/attributes/attributes';
 import AttributesValues from '../features/attributesValues/attributesValues';
+import Products         from '../features/products/Products';
 import ThemeCustomizer  from '../theme/ThemeCustomizer';
 import Login            from '../features/auth/Login';
 import { initSessionTimer } from '../store/authStore/authThunks';
@@ -60,6 +61,7 @@ export default function AppRouter() {
             <Route path="/categorias"      element={<Categories />} />
             <Route path="/atributos"          element={<Attributes />} />
             <Route path="/valores-atributos" element={<AttributesValues />} />
+            <Route path="/productos"         element={<Products />} />
             <Route path="/personalizacion"   element={<ThemeCustomizer />} />
           </Route>
         </Route>

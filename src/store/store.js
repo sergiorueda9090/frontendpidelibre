@@ -5,6 +5,7 @@ import { authStore } from './authStore/authStore'
 import { categoryStore } from './categoryStore/categoryStore'
 import { attributeStore } from './attributeStore/attributeStore'
 import { attributeValuesStore } from './attributeValuesStore/attributeValuesStore'
+import {productsStore } from './productsStore/productsStore'
 
 export const store = configureStore({
   reducer: {
@@ -14,5 +15,6 @@ export const store = configureStore({
     categoryStore: categoryStore.reducer,
     attributeStore: attributeStore.reducer,
     attributeValuesStore: attributeValuesStore.reducer,
+    productsStore: productsStore.reducer,
     },
 })

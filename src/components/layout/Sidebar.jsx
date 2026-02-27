@@ -12,6 +12,7 @@ import StorefrontIcon from '@mui/icons-material/Storefront';
 import CategoryIcon from '@mui/icons-material/Category';
 import TuneIcon from '@mui/icons-material/Tune';
 import StyleIcon from '@mui/icons-material/Style';
+import ShoppingBagOutlinedIcon from '@mui/icons-material/ShoppingBagOutlined';
 import { useThemeSettings } from '../../theme/ThemeContext';
 
 const SIDEBAR_WIDTH = 280;
@@ -27,6 +28,7 @@ const NAV_GROUPS = [
       { label: 'Categorías',  path: '/categorias', icon: <CategoryIcon /> },
       { label: 'Atributos',         path: '/atributos',          icon: <TuneIcon /> },
       { label: 'Valores de attr.', path: '/valores-atributos',  icon: <StyleIcon /> },
+      { label: 'Productos',        path: '/productos',          icon: <ShoppingBagOutlinedIcon /> },
     ],
   },
   {
