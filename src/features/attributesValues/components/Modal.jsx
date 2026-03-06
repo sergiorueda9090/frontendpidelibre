@@ -228,6 +228,7 @@ export default function AttributeValueModal({ open, onClose, onSave, attributeVa
                 fullWidth
                 label="Color hex (opcional)"
                 name="color_hex"
+                type='color'
                 value={color_hex}
                 onChange={handleChange}
                 error={!!errors.color_hex}

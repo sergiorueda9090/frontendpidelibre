@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { set_form_store_thunk } from '../../../store/categoryStore/categoryThunks';
+import { set_form_store_thunk } from '../../../store/brandStore/brandThunks';
 import {
   Dialog, DialogContent, DialogActions, Fade,
   Button, TextField, Stack, MenuItem, CircularProgress,
@@ -11,14 +11,13 @@ import CloseIcon                      from '@mui/icons-material/Close';
 import AddCircleOutlineIcon           from '@mui/icons-material/AddCircleOutline';
 import EditOutlinedIcon               from '@mui/icons-material/EditOutlined';
 import VisibilityOutlinedIcon         from '@mui/icons-material/VisibilityOutlined';
-import CategoryOutlinedIcon           from '@mui/icons-material/CategoryOutlined';
+import BrandingWatermarkOutlinedIcon  from '@mui/icons-material/BrandingWatermarkOutlined';
 import AbcOutlinedIcon                from '@mui/icons-material/AbcOutlined';
-import SortOutlinedIcon               from '@mui/icons-material/SortOutlined';
 import RadioButtonCheckedOutlinedIcon from '@mui/icons-material/RadioButtonCheckedOutlined';
-import TitleOutlinedIcon              from '@mui/icons-material/TitleOutlined';
 import DescriptionOutlinedIcon        from '@mui/icons-material/DescriptionOutlined';
-import AccountTreeOutlinedIcon        from '@mui/icons-material/AccountTreeOutlined';
-import ImageUploader from '../../../components/common/ImageUploader';
+import { useDropzone } from 'react-dropzone';
+import CloudUploadOutlinedIcon from '@mui/icons-material/CloudUploadOutlined';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 
 const STATUS_OPTIONS = [
   { value: true,  label: 'Activa' },
@@ -32,6 +31,98 @@ const paperEnterKeyframes = `
   }
 `;
 
+function LogoDropzone({ value, onChange, readOnly, name, accentColor }) {
+  const theme = useTheme();
+  const preview = value instanceof File ? URL.createObjectURL(value) : value || null;
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    accept: { 'image/*': ['.png', '.jpg', '.jpeg', '.svg', '.webp'] },
+    maxFiles: 1,
+    disabled: readOnly,
+    onDrop: (accepted) => {
+      if (accepted.length > 0) onChange(accepted[0]);
+    },
+  });
+
+  useEffect(() => {
+    return () => {
+      if (value instanceof File && preview) URL.revokeObjectURL(preview);
+    };
+  }, [value, preview]);
+
+  if (preview) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', mb: 1 }}>
+        <Box sx={{ position: 'relative', display: 'inline-block' }}>
+          <Box
+            sx={{
+              width: 220, height: 140, borderRadius: 2.5,
+              border: `2px solid ${alpha(accentColor, 0.2)}`,
+              bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.02)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              overflow: 'hidden', p: 1.5,
+            }}
+          >
+            <Box
+              component="img"
+              src={preview}
+              alt="Logo"
+              sx={{
+                maxWidth: '100%', maxHeight: '100%',
+                objectFit: 'contain',
+              }}
+            />
+          </Box>
+          {!readOnly && (
+            <IconButton
+              size="small"
+              onClick={() => onChange(null)}
+              sx={{
+                position: 'absolute', top: -10, right: -10,
+                bgcolor: 'error.main', color: '#fff',
+                width: 28, height: 28,
+                '&:hover': { bgcolor: 'error.dark' },
+                boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
+              }}
+            >
+              <DeleteOutlineIcon sx={{ fontSize: 16 }} />
+            </IconButton>
+          )}
+        </Box>
+      </Box>
+    );
+  }
+
+  return (
+    <Box
+      {...getRootProps()}
+      sx={{
+        mb: 1, p: 3, borderRadius: 2.5,
+        border: `2px dashed ${isDragActive ? accentColor : alpha(accentColor, 0.3)}`,
+        bgcolor: isDragActive
+          ? alpha(accentColor, 0.08)
+          : theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
+        cursor: readOnly ? 'default' : 'pointer',
+        transition: 'all 0.2s ease',
+        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1,
+        '&:hover': readOnly ? {} : {
+          borderColor: accentColor,
+          bgcolor: alpha(accentColor, 0.06),
+        },
+      }}
+    >
+      <input {...getInputProps()} />
+      <CloudUploadOutlinedIcon sx={{ fontSize: 36, color: alpha(accentColor, 0.6) }} />
+      <Typography variant="body2" fontWeight={600} color="text.secondary" textAlign="center">
+        {isDragActive ? 'Suelta la imagen aquí' : 'Arrastra el logo o haz clic para seleccionar'}
+      </Typography>
+      <Typography variant="caption" color="text.disabled">
+        PNG, JPG, SVG o WebP
+      </Typography>
+    </Box>
+  );
+}
+
 function SectionLabel({ children }) {
   return (
     <Typography
@@ -43,17 +134,14 @@ function SectionLabel({ children }) {
   );
 }
 
-export default function CategoryModal({ open, onClose, onSave, category, saving, readOnly = false }) {
+export default function BrandModal({ open, onClose, onSave, brand, saving, readOnly = false }) {
   const theme    = useTheme();
   const dispatch = useDispatch();
 
-  const { id, image, name, slug, parent, is_active, order, meta_title, meta_description } =
-    useSelector((s) => s.categoryStore);
+  const { id, logo, name, slug, description, is_active } =
+    useSelector((s) => s.brandStore);
 
-  // Lista de categorías disponibles para seleccionar como padre
-  const allCategories = useSelector((s) => s.categoryStore.data);
-
-  const isEditing = Boolean(category?.id);
+  const isEditing = Boolean(brand?.id);
   const [errors, setErrors] = useState({});
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
 
@@ -66,8 +154,8 @@ export default function CategoryModal({ open, onClose, onSave, category, saving,
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: '' }));
   };
 
-  const handleImageChange = (value) => {
-    dispatch(set_form_store_thunk({ name: 'image', value }));
+  const handleLogoChange = (value) => {
+    dispatch(set_form_store_thunk({ name: 'logo', value }));
   };
 
   const handleNameChange = (e) => {
@@ -91,20 +179,17 @@ export default function CategoryModal({ open, onClose, onSave, category, saving,
   const handleSubmit = () => {
     const errs = validate();
     if (Object.keys(errs).length) { setErrors(errs); return; }
-    onSave({ id: category?.id, image, name, slug, parent, is_active, order, meta_title, meta_description });
+    onSave({ id: brand?.id, logo, name, slug, description, is_active });
   };
 
   const accentColor = readOnly ? theme.palette.info.main : theme.palette.primary.main;
   const ModeIcon    = readOnly ? VisibilityOutlinedIcon : isEditing ? EditOutlinedIcon : AddCircleOutlineIcon;
-  const title       = readOnly ? 'Detalle de categoría' : isEditing ? 'Editar categoría' : 'Nueva categoría';
+  const title       = readOnly ? 'Detalle de marca' : isEditing ? 'Editar marca' : 'Nueva marca';
   const subtitle    = readOnly
-    ? `Información de ${category?.name ?? ''}`
+    ? `Información de ${brand?.name ?? ''}`
     : isEditing
-      ? `Modifica los datos de ${category?.name ?? ''}`
-      : 'Completa el formulario para registrar una nueva categoría';
-
-  // Categorías disponibles como padre (excluir la actual)
-  const parentOptions = allCategories.filter((c) => c.id !== id);
+      ? `Modifica los datos de ${brand?.name ?? ''}`
+      : 'Completa el formulario para registrar una nueva marca';
 
   return (
     <>
@@ -203,17 +288,15 @@ export default function CategoryModal({ open, onClose, onSave, category, saving,
             </Box>
           )}
 
-          {/* Imagen */}
-          <SectionLabel>Imagen de categoría</SectionLabel>
-          <Box sx={{ display: 'flex', justifyContent: 'center', mb: 1 }}>
-            <ImageUploader
-              value={image}
-              onChange={handleImageChange}
-              readOnly={readOnly}
-              initials={name?.charAt(0).toUpperCase() || 'C'}
-              size={100}
-            />
-          </Box>
+          {/* Logo */}
+          <SectionLabel>Logo de marca</SectionLabel>
+          <LogoDropzone
+            value={logo}
+            onChange={handleLogoChange}
+            readOnly={readOnly}
+            name={name}
+            accentColor={accentColor}
+          />
 
           {/* Información principal */}
           <SectionLabel>Información principal</SectionLabel>
@@ -231,7 +314,7 @@ export default function CategoryModal({ open, onClose, onSave, category, saving,
                 readOnly,
                 startAdornment: (
                   <InputAdornment position="start">
-                    <CategoryOutlinedIcon sx={{ fontSize: 20, color: 'text.disabled' }} />
+                    <BrandingWatermarkOutlinedIcon sx={{ fontSize: 20, color: 'text.disabled' }} />
                   </InputAdornment>
                 ),
               }}
@@ -244,7 +327,7 @@ export default function CategoryModal({ open, onClose, onSave, category, saving,
               value={slug}
               onChange={handleChange}
               error={!!errors.slug}
-              helperText={errors.slug || 'Solo minúsculas, números y guiones (ej: electronica-hogar)'}
+              helperText={errors.slug || 'Solo minúsculas, números y guiones (ej: nike-oficial)'}
               required={!readOnly}
               InputProps={{
                 readOnly,
@@ -257,30 +340,27 @@ export default function CategoryModal({ open, onClose, onSave, category, saving,
             />
 
             <TextField
-              select fullWidth
-              label="Categoría padre"
-              name="parent"
-              value={parent ?? ''}
-              onChange={e => dispatch(set_form_store_thunk({ name: 'parent', value: e.target.value || null }))}
+              fullWidth
+              label="Descripción"
+              name="description"
+              value={description}
+              onChange={handleChange}
+              multiline
+              rows={3}
               inputProps={{ readOnly }}
               InputProps={{
                 startAdornment: (
-                  <InputAdornment position="start">
-                    <AccountTreeOutlinedIcon sx={{ fontSize: 20, color: 'text.disabled' }} />
+                  <InputAdornment position="start" sx={{ mt: '10px', alignSelf: 'flex-start' }}>
+                    <DescriptionOutlinedIcon sx={{ fontSize: 20, color: 'text.disabled' }} />
                   </InputAdornment>
                 ),
               }}
-            >
-              <MenuItem value=""><em>Sin categoría padre</em></MenuItem>
-              {parentOptions.map((c) => (
-                <MenuItem key={c.id} value={c.id}>{c.name}</MenuItem>
-              ))}
-            </TextField>
+            />
           </Stack>
 
           {/* Configuración */}
           <SectionLabel>Configuración</SectionLabel>
-          <Stack direction={{ xs: 'column', sm: 'row' }} gap={2}>
+          <Stack gap={2.5} pb={2}>
             <TextField
               fullWidth select
               label="Estado"
@@ -302,63 +382,6 @@ export default function CategoryModal({ open, onClose, onSave, category, saving,
                 <MenuItem key={String(o.value)} value={o.value}>{o.label}</MenuItem>
               ))}
             </TextField>
-
-            <TextField
-              fullWidth
-              label="Orden"
-              name="order"
-              type="number"
-              value={order}
-              onChange={handleChange}
-              inputProps={{ readOnly, min: 0 }}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SortOutlinedIcon sx={{ fontSize: 20, color: 'text.disabled' }} />
-                  </InputAdornment>
-                ),
-              }}
-            />
-          </Stack>
-
-          {/* SEO */}
-          <SectionLabel>SEO</SectionLabel>
-          <Stack gap={2.5} pb={2}>
-            <TextField
-              fullWidth
-              label="Meta título"
-              name="meta_title"
-              value={meta_title}
-              onChange={handleChange}
-              inputProps={{ readOnly, maxLength: 160 }}
-              helperText={`${meta_title?.length ?? 0}/160`}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <TitleOutlinedIcon sx={{ fontSize: 20, color: 'text.disabled' }} />
-                  </InputAdornment>
-                ),
-              }}
-            />
-
-            <TextField
-              fullWidth
-              label="Meta descripción"
-              name="meta_description"
-              value={meta_description}
-              onChange={handleChange}
-              multiline
-              rows={3}
-              inputProps={{ readOnly, maxLength: 320 }}
-              helperText={`${meta_description?.length ?? 0}/320`}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start" sx={{ mt: '10px', alignSelf: 'flex-start' }}>
-                    <DescriptionOutlinedIcon sx={{ fontSize: 20, color: 'text.disabled' }} />
-                  </InputAdornment>
-                ),
-              }}
-            />
           </Stack>
         </DialogContent>
 
@@ -405,7 +428,7 @@ export default function CategoryModal({ open, onClose, onSave, category, saving,
                   transition: 'all 0.2s ease',
                 }}
               >
-                {saving ? 'Guardando...' : isEditing ? 'Guardar cambios' : 'Crear categoría'}
+                {saving ? 'Guardando...' : isEditing ? 'Guardar cambios' : 'Crear marca'}
               </Button>
             </>
           )}

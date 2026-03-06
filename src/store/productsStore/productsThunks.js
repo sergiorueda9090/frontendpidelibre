@@ -9,12 +9,12 @@ import { alertCreated, alertUpdated, alertDeleted, alertError, alertWarning } fr
 
 
 // ── Crear producto ─────────────────────────────────────────────────────────────
-export const create_thunk = () => {
+export const create_thunk = ({ coverImage, galleryFiles = [] } = {}) => {
   return async (dispatch, getState) => {
     dispatch(set_loading_store(true));
 
     const {
-      name, slug, image, category, description, short_description,
+      name, slug, category, brand, gender, description, short_description,
       price, compare_price, cost_price, sku, stock,
       is_active, is_featured, is_new, meta_title, meta_description,
     } = getState().productsStore;
@@ -28,6 +28,8 @@ export const create_thunk = () => {
       form.append('is_featured', is_featured);
       form.append('is_new',     is_new);
       if (category)          form.append('category',          category);
+      if (brand)             form.append('brand',             brand);
+      if (gender)            form.append('gender',            gender);
       if (description)       form.append('description',       description.trim());
       if (short_description) form.append('short_description', short_description.trim());
       if (price !== "")      form.append('price',             price);
@@ -37,11 +39,21 @@ export const create_thunk = () => {
       if (stock !== "")      form.append('stock',             stock);
       if (meta_title)        form.append('meta_title',        meta_title.trim());
       if (meta_description)  form.append('meta_description',  meta_description.trim());
-      if (image instanceof File) form.append('image', image);
+      if (coverImage instanceof File) form.append('image', coverImage);
 
       const response = await api.post('api/product/create/', form, {
         headers: { Authorization: `Bearer ${token}` },
       });
+
+      // Subir imágenes de galería al producto recién creado
+      const productId = response.data.data.id;
+      if (galleryFiles.length > 0) {
+        const imgForm = new FormData();
+        galleryFiles.forEach((file) => imgForm.append('images', file));
+        await api.post(`api/product/${productId}/images/upload/`, imgForm, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      }
 
       dispatch(close_modal_store());
       dispatch(clear_form_store());
@@ -87,23 +99,31 @@ export const get_all_thunk = () => {
 };
 
 
-// ── Cargar registro seleccionado en el form ────────────────────────────────────
+// ── Cargar registro seleccionado en el form (fetch detalle para obtener galería) ─
 export const get_selected_record_thunk = (record) => {
-  return (dispatch) => {
-    dispatch(set_selected_record_store(record));
+  return async (dispatch, getState) => {
+    const token = getState().authStore.accessToken;
+    try {
+      const response = await api.get(`api/product/${record.id}/`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      dispatch(set_selected_record_store(response.data));
+    } catch {
+      dispatch(set_selected_record_store(record));
+    }
   };
 };
 
 
 // ── Actualizar producto ────────────────────────────────────────────────────────
-export const update_thunk = () => {
+export const update_thunk = ({ coverImage, galleryFiles = [], removedImageIds = [] } = {}) => {
   return async (dispatch, getState) => {
     dispatch(set_loading_store(true));
 
     const {
-      id, name, slug, image, category, description, short_description,
+      id, name, slug, category, brand, gender, description, short_description,
       price, compare_price, cost_price, sku, stock,
-      is_active, is_featured, is_new, meta_title, meta_description, selected_record,
+      is_active, is_featured, is_new, meta_title, meta_description,
     } = getState().productsStore;
     const token = getState().authStore.accessToken;
 
@@ -115,6 +135,8 @@ export const update_thunk = () => {
       form.append('is_featured', is_featured);
       form.append('is_new',     is_new);
       if (category)          form.append('category',          category);
+      if (brand)             form.append('brand',             brand);
+      if (gender)            form.append('gender',            gender);
       if (description)       form.append('description',       description.trim());
       if (short_description) form.append('short_description', short_description.trim());
       if (price !== "")      form.append('price',             price);
@@ -124,14 +146,27 @@ export const update_thunk = () => {
       if (stock !== "")      form.append('stock',             stock);
       if (meta_title)        form.append('meta_title',        meta_title.trim());
       if (meta_description)  form.append('meta_description',  meta_description.trim());
-      if (image instanceof File) form.append('image', image);
+      if (coverImage instanceof File) form.append('image', coverImage);
 
-      const response = await api.put(`api/product/${id}/update/`, form, {
+      await api.put(`api/product/${id}/update/`, form, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      // Si se quitó la imagen y el registro tenía una → no llamamos delete separado
-      // (el backend maneja la imagen directamente en el update con FormData)
+      // Eliminar imágenes de galería que el usuario quitó
+      for (const imageId of removedImageIds) {
+        await api.delete(`api/product/images/${imageId}/delete/`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      }
+
+      // Subir nuevas imágenes de galería
+      if (galleryFiles.length > 0) {
+        const imgForm = new FormData();
+        galleryFiles.forEach((file) => imgForm.append('images', file));
+        await api.post(`api/product/${id}/images/upload/`, imgForm, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      }
 
       dispatch(close_modal_store());
       dispatch(clear_form_store());

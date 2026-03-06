@@ -7,6 +7,8 @@ const initialState = {
   name              : "",
   slug              : "",
   category          : null,   // id de la Category o null
+  brand             : null,   // id de la Brand o null
+  gender            : null,   // id del Gender o null
   description       : "",
   short_description : "",
   price             : "",
@@ -64,6 +66,8 @@ export const productsStore = createSlice({
       state.name              = "";
       state.slug              = "";
       state.category          = null;
+      state.brand             = null;
+      state.gender            = null;
       state.description       = "";
       state.short_description = "";
       state.price             = "";
@@ -85,6 +89,8 @@ export const productsStore = createSlice({
       state.name              = r.name              || "";
       state.slug              = r.slug              || "";
       state.category          = r.category?.id      ?? null;
+      state.brand             = r.brand?.id          ?? null;
+      state.gender            = r.gender?.id         ?? null;
       state.description       = r.description       || "";
       state.short_description = r.short_description || "";
       state.price             = r.price             ?? "";

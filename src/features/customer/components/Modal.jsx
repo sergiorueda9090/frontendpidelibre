@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { set_form_store_thunk } from '../../../store/categoryStore/categoryThunks';
+import { set_form_store_thunk } from '../../../store/customerStore/customerThunks';
+import { get_all_thunk as get_all_genders_thunk } from '../../../store/genderStore/genderThunks';
 import {
   Dialog, DialogContent, DialogActions, Fade,
   Button, TextField, Stack, MenuItem, CircularProgress,
@@ -11,18 +12,17 @@ import CloseIcon                      from '@mui/icons-material/Close';
 import AddCircleOutlineIcon           from '@mui/icons-material/AddCircleOutline';
 import EditOutlinedIcon               from '@mui/icons-material/EditOutlined';
 import VisibilityOutlinedIcon         from '@mui/icons-material/VisibilityOutlined';
-import CategoryOutlinedIcon           from '@mui/icons-material/CategoryOutlined';
-import AbcOutlinedIcon                from '@mui/icons-material/AbcOutlined';
-import SortOutlinedIcon               from '@mui/icons-material/SortOutlined';
+import PersonOutlinedIcon             from '@mui/icons-material/PersonOutlined';
+import EmailOutlinedIcon              from '@mui/icons-material/EmailOutlined';
+import PhoneOutlinedIcon              from '@mui/icons-material/PhoneOutlined';
+import BadgeOutlinedIcon              from '@mui/icons-material/BadgeOutlined';
+import CalendarMonthOutlinedIcon      from '@mui/icons-material/CalendarMonthOutlined';
+import WcOutlinedIcon                 from '@mui/icons-material/WcOutlined';
 import RadioButtonCheckedOutlinedIcon from '@mui/icons-material/RadioButtonCheckedOutlined';
-import TitleOutlinedIcon              from '@mui/icons-material/TitleOutlined';
-import DescriptionOutlinedIcon        from '@mui/icons-material/DescriptionOutlined';
-import AccountTreeOutlinedIcon        from '@mui/icons-material/AccountTreeOutlined';
-import ImageUploader from '../../../components/common/ImageUploader';
 
 const STATUS_OPTIONS = [
-  { value: true,  label: 'Activa' },
-  { value: false, label: 'Inactiva' },
+  { value: true,  label: 'Activo' },
+  { value: false, label: 'Inactivo' },
 ];
 
 const paperEnterKeyframes = `
@@ -43,68 +43,55 @@ function SectionLabel({ children }) {
   );
 }
 
-export default function CategoryModal({ open, onClose, onSave, category, saving, readOnly = false }) {
+export default function CustomerModal({ open, onClose, onSave, customer, saving, readOnly = false }) {
   const theme    = useTheme();
   const dispatch = useDispatch();
 
-  const { id, image, name, slug, parent, is_active, order, meta_title, meta_description } =
-    useSelector((s) => s.categoryStore);
+  const { id, first_name, last_name, email, phone, document_number, date_of_birth, gender, is_active } =
+    useSelector((s) => s.customerStore);
 
-  // Lista de categorías disponibles para seleccionar como padre
-  const allCategories = useSelector((s) => s.categoryStore.data);
+  const genders = useSelector((s) => s.genderStore.data);
 
-  const isEditing = Boolean(category?.id);
+  const isEditing = Boolean(customer?.id);
   const [errors, setErrors] = useState({});
-  const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
 
-  useEffect(() => { setErrors({}); setSlugManuallyEdited(false); }, [open]);
+  useEffect(() => { setErrors({}); }, [open]);
+
+  useEffect(() => {
+    if (open && genders.length === 0) {
+      dispatch(get_all_genders_thunk());
+    }
+  }, [open, genders.length, dispatch]);
 
   const handleChange = (e) => {
     const { name: field, value } = e.target;
     dispatch(set_form_store_thunk({ name: field, value }));
-    if (field === 'slug') setSlugManuallyEdited(true);
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: '' }));
-  };
-
-  const handleImageChange = (value) => {
-    dispatch(set_form_store_thunk({ name: 'image', value }));
-  };
-
-  const handleNameChange = (e) => {
-    const value = e.target.value;
-    dispatch(set_form_store_thunk({ name: 'name', value }));
-    if (!isEditing && !slugManuallyEdited) {
-      const autoSlug = value.toLowerCase().trim().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-      dispatch(set_form_store_thunk({ name: 'slug', value: autoSlug }));
-    }
-    if (errors.name) setErrors((prev) => ({ ...prev, name: '' }));
   };
 
   const validate = () => {
     const errs = {};
-    if (!name.trim()) errs.name = 'El nombre es requerido';
-    if (!slug.trim()) errs.slug = 'El slug es requerido';
-    else if (!/^[a-z0-9-]+$/.test(slug)) errs.slug = 'Solo minúsculas, números y guiones';
+    if (!first_name.trim()) errs.first_name = 'El nombre es requerido';
+    if (!last_name.trim())  errs.last_name  = 'El apellido es requerido';
+    if (!email.trim())      errs.email      = 'El email es requerido';
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errs.email = 'Email inválido';
     return errs;
   };
 
   const handleSubmit = () => {
     const errs = validate();
     if (Object.keys(errs).length) { setErrors(errs); return; }
-    onSave({ id: category?.id, image, name, slug, parent, is_active, order, meta_title, meta_description });
+    onSave({ id: customer?.id, first_name, last_name, email, phone, document_number, date_of_birth, gender, is_active });
   };
 
   const accentColor = readOnly ? theme.palette.info.main : theme.palette.primary.main;
   const ModeIcon    = readOnly ? VisibilityOutlinedIcon : isEditing ? EditOutlinedIcon : AddCircleOutlineIcon;
-  const title       = readOnly ? 'Detalle de categoría' : isEditing ? 'Editar categoría' : 'Nueva categoría';
+  const title       = readOnly ? 'Detalle de cliente' : isEditing ? 'Editar cliente' : 'Nuevo cliente';
   const subtitle    = readOnly
-    ? `Información de ${category?.name ?? ''}`
+    ? `Información de ${customer?.first_name ?? ''} ${customer?.last_name ?? ''}`
     : isEditing
-      ? `Modifica los datos de ${category?.name ?? ''}`
-      : 'Completa el formulario para registrar una nueva categoría';
-
-  // Categorías disponibles como padre (excluir la actual)
-  const parentOptions = allCategories.filter((c) => c.id !== id);
+      ? `Modifica los datos de ${customer?.first_name ?? ''} ${customer?.last_name ?? ''}`
+      : 'Completa el formulario para registrar un nuevo cliente';
 
   return (
     <>
@@ -203,84 +190,145 @@ export default function CategoryModal({ open, onClose, onSave, category, saving,
             </Box>
           )}
 
-          {/* Imagen */}
-          <SectionLabel>Imagen de categoría</SectionLabel>
-          <Box sx={{ display: 'flex', justifyContent: 'center', mb: 1 }}>
-            <ImageUploader
-              value={image}
-              onChange={handleImageChange}
-              readOnly={readOnly}
-              initials={name?.charAt(0).toUpperCase() || 'C'}
-              size={100}
-            />
-          </Box>
-
-          {/* Información principal */}
-          <SectionLabel>Información principal</SectionLabel>
+          {/* Información personal */}
+          <SectionLabel>Información personal</SectionLabel>
           <Stack gap={2.5}>
-            <TextField
-              fullWidth
-              label="Nombre"
-              name="name"
-              value={name}
-              onChange={handleNameChange}
-              error={!!errors.name}
-              helperText={errors.name}
-              required={!readOnly}
-              InputProps={{
-                readOnly,
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <CategoryOutlinedIcon sx={{ fontSize: 20, color: 'text.disabled' }} />
-                  </InputAdornment>
-                ),
-              }}
-            />
+            <Stack direction={{ xs: 'column', sm: 'row' }} gap={2.5}>
+              <TextField
+                fullWidth
+                label="Nombre"
+                name="first_name"
+                value={first_name}
+                onChange={handleChange}
+                error={!!errors.first_name}
+                helperText={errors.first_name}
+                required={!readOnly}
+                InputProps={{
+                  readOnly,
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <PersonOutlinedIcon sx={{ fontSize: 20, color: 'text.disabled' }} />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+              <TextField
+                fullWidth
+                label="Apellido"
+                name="last_name"
+                value={last_name}
+                onChange={handleChange}
+                error={!!errors.last_name}
+                helperText={errors.last_name}
+                required={!readOnly}
+                InputProps={{
+                  readOnly,
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <PersonOutlinedIcon sx={{ fontSize: 20, color: 'text.disabled' }} />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            </Stack>
 
             <TextField
               fullWidth
-              label="Slug"
-              name="slug"
-              value={slug}
+              label="Email"
+              name="email"
+              type="email"
+              value={email}
               onChange={handleChange}
-              error={!!errors.slug}
-              helperText={errors.slug || 'Solo minúsculas, números y guiones (ej: electronica-hogar)'}
+              error={!!errors.email}
+              helperText={errors.email}
               required={!readOnly}
               InputProps={{
                 readOnly,
                 startAdornment: (
                   <InputAdornment position="start">
-                    <AbcOutlinedIcon sx={{ fontSize: 20, color: 'text.disabled' }} />
+                    <EmailOutlinedIcon sx={{ fontSize: 20, color: 'text.disabled' }} />
                   </InputAdornment>
                 ),
               }}
             />
 
-            <TextField
-              select fullWidth
-              label="Categoría padre"
-              name="parent"
-              value={parent ?? ''}
-              onChange={e => dispatch(set_form_store_thunk({ name: 'parent', value: e.target.value || null }))}
-              inputProps={{ readOnly }}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <AccountTreeOutlinedIcon sx={{ fontSize: 20, color: 'text.disabled' }} />
-                  </InputAdornment>
-                ),
-              }}
-            >
-              <MenuItem value=""><em>Sin categoría padre</em></MenuItem>
-              {parentOptions.map((c) => (
-                <MenuItem key={c.id} value={c.id}>{c.name}</MenuItem>
-              ))}
-            </TextField>
+            <Stack direction={{ xs: 'column', sm: 'row' }} gap={2.5}>
+              <TextField
+                fullWidth
+                label="Teléfono"
+                name="phone"
+                value={phone}
+                onChange={handleChange}
+                InputProps={{
+                  readOnly,
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <PhoneOutlinedIcon sx={{ fontSize: 20, color: 'text.disabled' }} />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+              <TextField
+                fullWidth
+                label="Documento"
+                name="document_number"
+                value={document_number}
+                onChange={handleChange}
+                InputProps={{
+                  readOnly,
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <BadgeOutlinedIcon sx={{ fontSize: 20, color: 'text.disabled' }} />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            </Stack>
+
+            <Stack direction={{ xs: 'column', sm: 'row' }} gap={2.5}>
+              <TextField
+                fullWidth
+                label="Fecha de nacimiento"
+                name="date_of_birth"
+                type="date"
+                value={date_of_birth}
+                onChange={handleChange}
+                InputLabelProps={{ shrink: true }}
+                InputProps={{
+                  readOnly,
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <CalendarMonthOutlinedIcon sx={{ fontSize: 20, color: 'text.disabled' }} />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+              <TextField
+                fullWidth select
+                label="Género"
+                name="gender"
+                value={gender || ''}
+                onChange={handleChange}
+                inputProps={{ readOnly }}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <WcOutlinedIcon sx={{ fontSize: 20, color: 'text.disabled' }} />
+                    </InputAdornment>
+                  ),
+                }}
+              >
+                <MenuItem value=""><em>Sin género</em></MenuItem>
+                {genders.map((g) => (
+                  <MenuItem key={g.id} value={g.id}>{g.name}</MenuItem>
+                ))}
+              </TextField>
+            </Stack>
           </Stack>
 
           {/* Configuración */}
           <SectionLabel>Configuración</SectionLabel>
-          <Stack direction={{ xs: 'column', sm: 'row' }} gap={2}>
+          <Stack gap={2.5} pb={2}>
             <TextField
               fullWidth select
               label="Estado"
@@ -302,63 +350,6 @@ export default function CategoryModal({ open, onClose, onSave, category, saving,
                 <MenuItem key={String(o.value)} value={o.value}>{o.label}</MenuItem>
               ))}
             </TextField>
-
-            <TextField
-              fullWidth
-              label="Orden"
-              name="order"
-              type="number"
-              value={order}
-              onChange={handleChange}
-              inputProps={{ readOnly, min: 0 }}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SortOutlinedIcon sx={{ fontSize: 20, color: 'text.disabled' }} />
-                  </InputAdornment>
-                ),
-              }}
-            />
-          </Stack>
-
-          {/* SEO */}
-          <SectionLabel>SEO</SectionLabel>
-          <Stack gap={2.5} pb={2}>
-            <TextField
-              fullWidth
-              label="Meta título"
-              name="meta_title"
-              value={meta_title}
-              onChange={handleChange}
-              inputProps={{ readOnly, maxLength: 160 }}
-              helperText={`${meta_title?.length ?? 0}/160`}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <TitleOutlinedIcon sx={{ fontSize: 20, color: 'text.disabled' }} />
-                  </InputAdornment>
-                ),
-              }}
-            />
-
-            <TextField
-              fullWidth
-              label="Meta descripción"
-              name="meta_description"
-              value={meta_description}
-              onChange={handleChange}
-              multiline
-              rows={3}
-              inputProps={{ readOnly, maxLength: 320 }}
-              helperText={`${meta_description?.length ?? 0}/320`}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start" sx={{ mt: '10px', alignSelf: 'flex-start' }}>
-                    <DescriptionOutlinedIcon sx={{ fontSize: 20, color: 'text.disabled' }} />
-                  </InputAdornment>
-                ),
-              }}
-            />
           </Stack>
         </DialogContent>
 
@@ -405,7 +396,7 @@ export default function CategoryModal({ open, onClose, onSave, category, saving,
                   transition: 'all 0.2s ease',
                 }}
               >
-                {saving ? 'Guardando...' : isEditing ? 'Guardar cambios' : 'Crear categoría'}
+                {saving ? 'Guardando...' : isEditing ? 'Guardar cambios' : 'Crear cliente'}
               </Button>
             </>
           )}

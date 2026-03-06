@@ -22,6 +22,8 @@ import CategoryOutlinedIcon           from '@mui/icons-material/CategoryOutlined
 import AttachMoneyOutlinedIcon        from '@mui/icons-material/AttachMoneyOutlined';
 import QrCodeOutlinedIcon             from '@mui/icons-material/QrCodeOutlined';
 import Inventory2OutlinedIcon         from '@mui/icons-material/Inventory2Outlined';
+import BrandingWatermarkOutlinedIcon  from '@mui/icons-material/BrandingWatermarkOutlined';
+import WcOutlinedIcon                 from '@mui/icons-material/WcOutlined';
 import TitleOutlinedIcon              from '@mui/icons-material/TitleOutlined';
 import DescriptionOutlinedIcon        from '@mui/icons-material/DescriptionOutlined';
 import RadioButtonCheckedOutlinedIcon from '@mui/icons-material/RadioButtonCheckedOutlined';
@@ -70,12 +72,14 @@ export default function ProductModal({ open, onClose, onSave, product, saving, r
   const isDark   = theme.palette.mode === 'dark';
 
   const {
-    id, image, name, slug, category, description, short_description,
+    id, image, name, slug, category, brand, gender, description, short_description,
     price, compare_price, cost_price, sku, stock,
     is_active, is_featured, is_new, meta_title, meta_description,
   } = useSelector((s) => s.productsStore);
 
   const categories = useSelector((s) => s.categoryStore.data);
+  const brands     = useSelector((s) => s.brandStore.data);
+  const genders    = useSelector((s) => s.genderStore.data);
   const token      = useSelector((s) => s.authStore.accessToken);
 
   const isEditing = Boolean(product?.id);
@@ -90,12 +94,28 @@ export default function ProductModal({ open, onClose, onSave, product, saving, r
     setErrors({});
     setSlugManuallyEdited(false);
 
+    const initialImages = [];
+
+    // Imagen de portada (campo image del producto)
     if (image) {
       const preview = typeof image === 'string' ? image : URL.createObjectURL(image);
-      setImages([{ id: 'existing-0', file: null, preview, isNew: false }]);
-    } else {
-      setImages([]);
+      initialImages.push({ id: 'cover', file: null, preview, isNew: false });
     }
+
+    // Imágenes de galería (campo images del detalle del producto)
+    if (product?.images?.length) {
+      product.images.forEach((img) => {
+        initialImages.push({
+          id: `gallery-${img.id}`,
+          serverId: img.id,
+          file: null,
+          preview: img.url,
+          isNew: false,
+        });
+      });
+    }
+
+    setImages(initialImages);
   }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* ── Handlers ── */
@@ -143,11 +163,29 @@ export default function ProductModal({ open, onClose, onSave, product, saving, r
     const errs = validate();
     if (Object.keys(errs).length) { setErrors(errs); return; }
 
-    const coverImage = images[0]?.file ?? images[0]?.preview ?? null;
+    // Portada: primer imagen (File nuevo o null si no cambió)
+    const coverImage = images[0]?.file instanceof File ? images[0].file : null;
+
+    // Galería: archivos nuevos (excluyendo la portada en posición 0)
+    const galleryFiles = images
+      .slice(1)
+      .filter((img) => img.isNew && img.file instanceof File)
+      .map((img) => img.file);
+
+    // Galería: IDs de imágenes existentes que el usuario eliminó
+    const originalGalleryIds = (product?.images || []).map((img) => img.id);
+    const keptGalleryIds = images
+      .filter((img) => img.serverId)
+      .map((img) => img.serverId);
+    const removedImageIds = originalGalleryIds.filter(
+      (id) => !keptGalleryIds.includes(id)
+    );
+
     onSave({
       id: product?.id,
-      image:  coverImage,
-      images: images.map((img) => img.file ?? img.preview),
+      coverImage,
+      galleryFiles,
+      removedImageIds,
       name, slug, category, description, short_description,
       price, compare_price, cost_price, sku, stock,
       is_active, is_featured, is_new, meta_title, meta_description,
@@ -417,6 +455,54 @@ export default function ProductModal({ open, onClose, onSave, product, saving, r
                   <MenuItem value=""><em>Sin categoría</em></MenuItem>
                   {categories.map((c) => (
                     <MenuItem key={c.id} value={c.id}>{c.name}</MenuItem>
+                  ))}
+                </TextField>
+
+                {/* Marca */}
+                <TextField
+                  select fullWidth
+                  label="Marca"
+                  name="brand"
+                  value={brand ?? ''}
+                  onChange={(e) =>
+                    dispatch(set_form_store_thunk({ name: 'brand', value: e.target.value || null }))
+                  }
+                  inputProps={{ readOnly }}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <BrandingWatermarkOutlinedIcon sx={{ fontSize: 20, color: 'text.disabled' }} />
+                      </InputAdornment>
+                    ),
+                  }}
+                >
+                  <MenuItem value=""><em>Sin marca</em></MenuItem>
+                  {brands.map((b) => (
+                    <MenuItem key={b.id} value={b.id}>{b.name}</MenuItem>
+                  ))}
+                </TextField>
+
+                {/* Género */}
+                <TextField
+                  select fullWidth
+                  label="Género"
+                  name="gender"
+                  value={gender ?? ''}
+                  onChange={(e) =>
+                    dispatch(set_form_store_thunk({ name: 'gender', value: e.target.value || null }))
+                  }
+                  inputProps={{ readOnly }}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <WcOutlinedIcon sx={{ fontSize: 20, color: 'text.disabled' }} />
+                      </InputAdornment>
+                    ),
+                  }}
+                >
+                  <MenuItem value=""><em>Sin género</em></MenuItem>
+                  {genders.map((g) => (
+                    <MenuItem key={g.id} value={g.id}>{g.name}</MenuItem>
                   ))}
                 </TextField>
               </Stack>

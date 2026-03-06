@@ -4,11 +4,13 @@ import { useSelector, useDispatch } from 'react-redux';
 import DashboardLayout  from '../components/layout/DashboardLayout';
 import Dashboard        from '../features/dashboard/Dashboard';
 import Users            from '../features/users/Users';
-import Clients          from '../features/clients/Clients';
+import Customer         from '../features/customer/Customer';
 import Categories       from '../features/categories/Categories';
 import Attributes       from '../features/attributes/attributes';
 import AttributesValues from '../features/attributesValues/attributesValues';
 import Products         from '../features/products/Products';
+import Brand            from '../features/brand/Categories';
+import Gender           from '../features/gender/Categories';
 import ThemeCustomizer  from '../theme/ThemeCustomizer';
 import Login            from '../features/auth/Login';
 import { initSessionTimer } from '../store/authStore/authThunks';
@@ -57,11 +59,13 @@ export default function AppRouter() {
           <Route element={<DashboardLayout />}>
             <Route path="/dashboard"       element={<Dashboard />} />
             <Route path="/usuarios"        element={<Users />} />
-            <Route path="/clientes"        element={<Clients />} />
+            <Route path="/clientes"        element={<Customer />} />
             <Route path="/categorias"      element={<Categories />} />
             <Route path="/atributos"          element={<Attributes />} />
             <Route path="/valores-atributos" element={<AttributesValues />} />
             <Route path="/productos"         element={<Products />} />
+            <Route path="/marcas"            element={<Brand />} />
+            <Route path="/generos"           element={<Gender />} />
             <Route path="/personalizacion"   element={<ThemeCustomizer />} />
           </Route>
         </Route>

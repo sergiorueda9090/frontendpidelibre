@@ -5,6 +5,8 @@ import { clear_form_store } from '../../store/productsStore/productsStore';
 import { get_selected_record_thunk, create_thunk, update_thunk, delete_thunk } from '../../store/productsStore/productsThunks';
 import { open_modal_store, close_modal_store, read_only_store, read_view_store } from '../../store/globalStore/globalStore';
 import { get_all_thunk as get_all_categories_thunk } from '../../store/categoryStore/categoryThunks';
+import { get_all_thunk as get_all_brands_thunk } from '../../store/brandStore/brandThunks';
+import { get_all_thunk as get_all_genders_thunk } from '../../store/genderStore/genderThunks';
 import { confirmDelete } from '../../utils/alerts';
 
 import ProductsFilters  from './components/Filters';
@@ -20,15 +22,17 @@ export default function Products() {
   const { data, selected_record, loading, total_count, page_size } = useSelector((s) => s.productsStore);
   const { open_modal, open_modal_read_only }                        = useSelector((s) => s.globalStore);
   const categoriesLoaded = useSelector((s) => s.categoryStore.data.length > 0);
+  const brandsLoaded     = useSelector((s) => s.brandStore.data.length > 0);
+  const gendersLoaded    = useSelector((s) => s.genderStore.data.length > 0);
 
   const [saving, setSaving] = useState(false);
 
-  // Carga categorías para el select del modal y filtros
+  // Carga categorías, marcas y géneros para los selects del modal
   useEffect(() => {
-    if (!categoriesLoaded) {
-      dispatch(get_all_categories_thunk());
-    }
-  }, [dispatch, categoriesLoaded]);
+    if (!categoriesLoaded) dispatch(get_all_categories_thunk());
+    if (!brandsLoaded)     dispatch(get_all_brands_thunk());
+    if (!gendersLoaded)    dispatch(get_all_genders_thunk());
+  }, [dispatch, categoriesLoaded, brandsLoaded, gendersLoaded]);
 
   // ── Handlers ──────────────────────────────────────────────────────────────
   const handleView = (row) => {
@@ -53,9 +57,16 @@ export default function Products() {
     setSaving(true);
     try {
       if (formData.id) {
-        await dispatch(update_thunk());
+        await dispatch(update_thunk({
+          coverImage:      formData.coverImage,
+          galleryFiles:    formData.galleryFiles,
+          removedImageIds: formData.removedImageIds,
+        }));
       } else {
-        await dispatch(create_thunk());
+        await dispatch(create_thunk({
+          coverImage:   formData.coverImage,
+          galleryFiles: formData.galleryFiles,
+        }));
       }
     } finally {
       setSaving(false);

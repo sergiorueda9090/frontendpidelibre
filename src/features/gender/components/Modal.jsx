@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { set_form_store_thunk } from '../../../store/categoryStore/categoryThunks';
+import { set_form_store_thunk } from '../../../store/genderStore/genderThunks';
 import {
   Dialog, DialogContent, DialogActions, Fade,
-  Button, TextField, Stack, MenuItem, CircularProgress,
+  Button, TextField, Stack, CircularProgress,
   Box, Typography, IconButton, Avatar, InputAdornment, alpha,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
@@ -11,19 +11,9 @@ import CloseIcon                      from '@mui/icons-material/Close';
 import AddCircleOutlineIcon           from '@mui/icons-material/AddCircleOutline';
 import EditOutlinedIcon               from '@mui/icons-material/EditOutlined';
 import VisibilityOutlinedIcon         from '@mui/icons-material/VisibilityOutlined';
-import CategoryOutlinedIcon           from '@mui/icons-material/CategoryOutlined';
+import WcOutlinedIcon                 from '@mui/icons-material/WcOutlined';
 import AbcOutlinedIcon                from '@mui/icons-material/AbcOutlined';
-import SortOutlinedIcon               from '@mui/icons-material/SortOutlined';
-import RadioButtonCheckedOutlinedIcon from '@mui/icons-material/RadioButtonCheckedOutlined';
-import TitleOutlinedIcon              from '@mui/icons-material/TitleOutlined';
 import DescriptionOutlinedIcon        from '@mui/icons-material/DescriptionOutlined';
-import AccountTreeOutlinedIcon        from '@mui/icons-material/AccountTreeOutlined';
-import ImageUploader from '../../../components/common/ImageUploader';
-
-const STATUS_OPTIONS = [
-  { value: true,  label: 'Activa' },
-  { value: false, label: 'Inactiva' },
-];
 
 const paperEnterKeyframes = `
   @keyframes modalSlideIn {
@@ -43,17 +33,14 @@ function SectionLabel({ children }) {
   );
 }
 
-export default function CategoryModal({ open, onClose, onSave, category, saving, readOnly = false }) {
+export default function GenderModal({ open, onClose, onSave, gender, saving, readOnly = false }) {
   const theme    = useTheme();
   const dispatch = useDispatch();
 
-  const { id, image, name, slug, parent, is_active, order, meta_title, meta_description } =
-    useSelector((s) => s.categoryStore);
+  const { id, name, slug, description } =
+    useSelector((s) => s.genderStore);
 
-  // Lista de categorías disponibles para seleccionar como padre
-  const allCategories = useSelector((s) => s.categoryStore.data);
-
-  const isEditing = Boolean(category?.id);
+  const isEditing = Boolean(gender?.id);
   const [errors, setErrors] = useState({});
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
 
@@ -64,10 +51,6 @@ export default function CategoryModal({ open, onClose, onSave, category, saving,
     dispatch(set_form_store_thunk({ name: field, value }));
     if (field === 'slug') setSlugManuallyEdited(true);
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: '' }));
-  };
-
-  const handleImageChange = (value) => {
-    dispatch(set_form_store_thunk({ name: 'image', value }));
   };
 
   const handleNameChange = (e) => {
@@ -91,20 +74,17 @@ export default function CategoryModal({ open, onClose, onSave, category, saving,
   const handleSubmit = () => {
     const errs = validate();
     if (Object.keys(errs).length) { setErrors(errs); return; }
-    onSave({ id: category?.id, image, name, slug, parent, is_active, order, meta_title, meta_description });
+    onSave({ id: gender?.id, name, slug, description });
   };
 
   const accentColor = readOnly ? theme.palette.info.main : theme.palette.primary.main;
   const ModeIcon    = readOnly ? VisibilityOutlinedIcon : isEditing ? EditOutlinedIcon : AddCircleOutlineIcon;
-  const title       = readOnly ? 'Detalle de categoría' : isEditing ? 'Editar categoría' : 'Nueva categoría';
+  const title       = readOnly ? 'Detalle de género' : isEditing ? 'Editar género' : 'Nuevo género';
   const subtitle    = readOnly
-    ? `Información de ${category?.name ?? ''}`
+    ? `Información de ${gender?.name ?? ''}`
     : isEditing
-      ? `Modifica los datos de ${category?.name ?? ''}`
-      : 'Completa el formulario para registrar una nueva categoría';
-
-  // Categorías disponibles como padre (excluir la actual)
-  const parentOptions = allCategories.filter((c) => c.id !== id);
+      ? `Modifica los datos de ${gender?.name ?? ''}`
+      : 'Completa el formulario para registrar un nuevo género';
 
   return (
     <>
@@ -203,18 +183,6 @@ export default function CategoryModal({ open, onClose, onSave, category, saving,
             </Box>
           )}
 
-          {/* Imagen */}
-          <SectionLabel>Imagen de categoría</SectionLabel>
-          <Box sx={{ display: 'flex', justifyContent: 'center', mb: 1 }}>
-            <ImageUploader
-              value={image}
-              onChange={handleImageChange}
-              readOnly={readOnly}
-              initials={name?.charAt(0).toUpperCase() || 'C'}
-              size={100}
-            />
-          </Box>
-
           {/* Información principal */}
           <SectionLabel>Información principal</SectionLabel>
           <Stack gap={2.5}>
@@ -231,7 +199,7 @@ export default function CategoryModal({ open, onClose, onSave, category, saving,
                 readOnly,
                 startAdornment: (
                   <InputAdornment position="start">
-                    <CategoryOutlinedIcon sx={{ fontSize: 20, color: 'text.disabled' }} />
+                    <WcOutlinedIcon sx={{ fontSize: 20, color: 'text.disabled' }} />
                   </InputAdornment>
                 ),
               }}
@@ -244,7 +212,7 @@ export default function CategoryModal({ open, onClose, onSave, category, saving,
               value={slug}
               onChange={handleChange}
               error={!!errors.slug}
-              helperText={errors.slug || 'Solo minúsculas, números y guiones (ej: electronica-hogar)'}
+              helperText={errors.slug || 'Solo minúsculas, números y guiones (ej: masculino)'}
               required={!readOnly}
               InputProps={{
                 readOnly,
@@ -257,100 +225,14 @@ export default function CategoryModal({ open, onClose, onSave, category, saving,
             />
 
             <TextField
-              select fullWidth
-              label="Categoría padre"
-              name="parent"
-              value={parent ?? ''}
-              onChange={e => dispatch(set_form_store_thunk({ name: 'parent', value: e.target.value || null }))}
-              inputProps={{ readOnly }}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <AccountTreeOutlinedIcon sx={{ fontSize: 20, color: 'text.disabled' }} />
-                  </InputAdornment>
-                ),
-              }}
-            >
-              <MenuItem value=""><em>Sin categoría padre</em></MenuItem>
-              {parentOptions.map((c) => (
-                <MenuItem key={c.id} value={c.id}>{c.name}</MenuItem>
-              ))}
-            </TextField>
-          </Stack>
-
-          {/* Configuración */}
-          <SectionLabel>Configuración</SectionLabel>
-          <Stack direction={{ xs: 'column', sm: 'row' }} gap={2}>
-            <TextField
-              fullWidth select
-              label="Estado"
-              name="is_active"
-              value={is_active}
-              onChange={handleChange}
-              inputProps={{ readOnly }}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <RadioButtonCheckedOutlinedIcon
-                      sx={{ fontSize: 20, color: is_active ? 'success.main' : 'text.disabled' }}
-                    />
-                  </InputAdornment>
-                ),
-              }}
-            >
-              {STATUS_OPTIONS.map((o) => (
-                <MenuItem key={String(o.value)} value={o.value}>{o.label}</MenuItem>
-              ))}
-            </TextField>
-
-            <TextField
               fullWidth
-              label="Orden"
-              name="order"
-              type="number"
-              value={order}
-              onChange={handleChange}
-              inputProps={{ readOnly, min: 0 }}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SortOutlinedIcon sx={{ fontSize: 20, color: 'text.disabled' }} />
-                  </InputAdornment>
-                ),
-              }}
-            />
-          </Stack>
-
-          {/* SEO */}
-          <SectionLabel>SEO</SectionLabel>
-          <Stack gap={2.5} pb={2}>
-            <TextField
-              fullWidth
-              label="Meta título"
-              name="meta_title"
-              value={meta_title}
-              onChange={handleChange}
-              inputProps={{ readOnly, maxLength: 160 }}
-              helperText={`${meta_title?.length ?? 0}/160`}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <TitleOutlinedIcon sx={{ fontSize: 20, color: 'text.disabled' }} />
-                  </InputAdornment>
-                ),
-              }}
-            />
-
-            <TextField
-              fullWidth
-              label="Meta descripción"
-              name="meta_description"
-              value={meta_description}
+              label="Descripción"
+              name="description"
+              value={description}
               onChange={handleChange}
               multiline
               rows={3}
-              inputProps={{ readOnly, maxLength: 320 }}
-              helperText={`${meta_description?.length ?? 0}/320`}
+              inputProps={{ readOnly }}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start" sx={{ mt: '10px', alignSelf: 'flex-start' }}>
@@ -405,7 +287,7 @@ export default function CategoryModal({ open, onClose, onSave, category, saving,
                   transition: 'all 0.2s ease',
                 }}
               >
-                {saving ? 'Guardando...' : isEditing ? 'Guardar cambios' : 'Crear categoría'}
+                {saving ? 'Guardando...' : isEditing ? 'Guardar cambios' : 'Crear género'}
               </Button>
             </>
           )}
