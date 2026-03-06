@@ -10,6 +10,7 @@ import { brandStore } from './brandStore/brandStore'
 import { genderStore } from './genderStore/genderStore'
 import { customerStore } from './customerStore/customerStore'
 import { sliderStore } from './sliderStore/sliderStore'
+import { featureAreaStore } from './featureAreaStore/featureAreaStore'
 
 export const store = configureStore({
   reducer: {
@@ -24,5 +25,6 @@ export const store = configureStore({
     genderStore: genderStore.reducer,
     customerStore: customerStore.reducer,
     sliderStore: sliderStore.reducer,
+    featureAreaStore: featureAreaStore.reducer,
     },
 })
