@@ -9,6 +9,7 @@ import {productsStore } from './productsStore/productsStore'
 import { brandStore } from './brandStore/brandStore'
 import { genderStore } from './genderStore/genderStore'
 import { customerStore } from './customerStore/customerStore'
+import { sliderStore } from './sliderStore/sliderStore'
 
 export const store = configureStore({
   reducer: {
@@ -22,5 +23,6 @@ export const store = configureStore({
     brandStore: brandStore.reducer,
     genderStore: genderStore.reducer,
     customerStore: customerStore.reducer,
+    sliderStore: sliderStore.reducer,
     },
 })

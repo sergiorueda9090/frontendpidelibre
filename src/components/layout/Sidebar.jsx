@@ -15,6 +15,7 @@ import StyleIcon from '@mui/icons-material/Style';
 import ShoppingBagOutlinedIcon from '@mui/icons-material/ShoppingBagOutlined';
 import BrandingWatermarkIcon from '@mui/icons-material/BrandingWatermark';
 import WcIcon from '@mui/icons-material/Wc';
+import ViewCarouselIcon from '@mui/icons-material/ViewCarousel';
 import { useThemeSettings } from '../../theme/ThemeContext';
 
 const SIDEBAR_WIDTH = 280;
@@ -33,6 +34,7 @@ const NAV_GROUPS = [
       { label: 'Productos',        path: '/productos',          icon: <ShoppingBagOutlinedIcon /> },
       { label: 'Marcas',           path: '/marcas',             icon: <BrandingWatermarkIcon /> },
       { label: 'Géneros',          path: '/generos',            icon: <WcIcon /> },
+      { label: 'Sliders',          path: '/sliders',            icon: <ViewCarouselIcon /> },
     ],
   },
   {
