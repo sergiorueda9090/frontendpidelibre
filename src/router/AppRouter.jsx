@@ -13,6 +13,7 @@ import Brand            from '../features/brand/Categories';
 import Gender           from '../features/gender/Categories';
 import Slider           from '../features/slider/Slider';
 import FeatureArea      from '../features/featureArea/FeatureArea';
+import FooterAdmin      from '../features/footer/Footer';
 import ThemeCustomizer  from '../theme/ThemeCustomizer';
 import Login            from '../features/auth/Login';
 import { initSessionTimer } from '../store/authStore/authThunks';
@@ -70,6 +71,7 @@ export default function AppRouter() {
             <Route path="/generos"           element={<Gender />} />
             <Route path="/sliders"           element={<Slider />} />
             <Route path="/feature-area"      element={<FeatureArea />} />
+            <Route path="/footer"            element={<FooterAdmin />} />
             <Route path="/personalizacion"   element={<ThemeCustomizer />} />
           </Route>
         </Route>

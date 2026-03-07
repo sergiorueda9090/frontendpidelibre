@@ -17,6 +17,7 @@ import BrandingWatermarkIcon from '@mui/icons-material/BrandingWatermark';
 import WcIcon from '@mui/icons-material/Wc';
 import ViewCarouselIcon from '@mui/icons-material/ViewCarousel';
 import FeaturedPlayListIcon from '@mui/icons-material/FeaturedPlayList';
+import ArticleOutlinedIcon from '@mui/icons-material/ArticleOutlined';
 import { useThemeSettings } from '../../theme/ThemeContext';
 
 const SIDEBAR_WIDTH = 280;
@@ -37,6 +38,7 @@ const NAV_GROUPS = [
       { label: 'Géneros',          path: '/generos',            icon: <WcIcon /> },
       { label: 'Sliders',          path: '/sliders',            icon: <ViewCarouselIcon /> },
       { label: 'Feature Area',     path: '/feature-area',       icon: <FeaturedPlayListIcon /> },
+      { label: 'Footer',           path: '/footer',             icon: <ArticleOutlinedIcon /> },
     ],
   },
   {

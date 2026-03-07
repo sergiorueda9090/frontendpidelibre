@@ -11,6 +11,7 @@ import { genderStore } from './genderStore/genderStore'
 import { customerStore } from './customerStore/customerStore'
 import { sliderStore } from './sliderStore/sliderStore'
 import { featureAreaStore } from './featureAreaStore/featureAreaStore'
+import { footerStore } from './footerStore/footerStore'
 
 export const store = configureStore({
   reducer: {
@@ -26,5 +27,6 @@ export const store = configureStore({
     customerStore: customerStore.reducer,
     sliderStore: sliderStore.reducer,
     featureAreaStore: featureAreaStore.reducer,
+    footerStore: footerStore.reducer,
     },
 })
