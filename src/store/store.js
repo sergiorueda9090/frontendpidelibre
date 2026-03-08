@@ -12,6 +12,7 @@ import { customerStore } from './customerStore/customerStore'
 import { sliderStore } from './sliderStore/sliderStore'
 import { featureAreaStore } from './featureAreaStore/featureAreaStore'
 import { footerStore } from './footerStore/footerStore'
+import ordersReducer from '../features/orders/ordersSlice'
 
 export const store = configureStore({
   reducer: {
@@ -28,5 +29,6 @@ export const store = configureStore({
     sliderStore: sliderStore.reducer,
     featureAreaStore: featureAreaStore.reducer,
     footerStore: footerStore.reducer,
+    orders: ordersReducer,
     },
 })

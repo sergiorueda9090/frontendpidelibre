@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Chip, Typography } from '@mui/material';
-import { fetchOrders, updateOrder, deleteOrder } from './ordersSlice';
+import { fetchOrders, fetchOrderDetail, deleteOrder } from './ordersSlice';
 import DataTable from '../../components/common/DataTable';
 import OrderDetail from './OrderDetail';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
@@ -9,16 +9,31 @@ import PageHeader from '../../components/common/PageHeader';
 import { formatCurrency, formatDate, getStatusColor, getStatusLabel } from '../../utils/formatters';
 
 const columns = [
-  { field: 'id', headerName: 'Orden', width: 110, sortable: true, renderCell: (row) => <Typography variant="body2" fontWeight={700} color="primary.main">{row.id}</Typography> },
-  { field: 'customer', headerName: 'Cliente', sortable: true, filterable: true },
-  { field: 'items', headerName: 'Artículos', width: 90, sortable: true, align: 'center' },
-  { field: 'total', headerName: 'Total', width: 120, sortable: true, align: 'right', renderCell: (row) => <Typography variant="body2" fontWeight={600}>{formatCurrency(row.total)}</Typography> },
   {
-    field: 'status', headerName: 'Estado', width: 120, sortable: true, filterable: true,
+    field: 'order_number', headerName: 'Orden', width: 170, sortable: true,
+    renderCell: (row) => <Typography variant="body2" fontWeight={700} color="primary.main">{row.order_number}</Typography>,
+  },
+  {
+    field: 'customer', headerName: 'Cliente', sortable: true, filterable: true,
+    renderCell: (row) => `${row.first_name} ${row.last_name}`,
+  },
+  { field: 'items_count', headerName: 'Artículos', width: 90, sortable: true, align: 'center' },
+  {
+    field: 'total', headerName: 'Total', width: 130, sortable: true, align: 'right',
+    renderCell: (row) => <Typography variant="body2" fontWeight={600}>{formatCurrency(row.total)}</Typography>,
+  },
+  {
+    field: 'status', headerName: 'Estado', width: 140, sortable: true, filterable: true,
     renderCell: (row) => <Chip label={getStatusLabel(row.status)} color={getStatusColor(row.status)} size="small" />,
   },
-  { field: 'paymentMethod', headerName: 'Pago', width: 140, sortable: true, renderCell: (row) => getStatusLabel(row.paymentMethod) },
-  { field: 'date', headerName: 'Fecha', width: 110, sortable: true, renderCell: (row) => formatDate(row.date) },
+  {
+    field: 'payment_method', headerName: 'Pago', width: 140, sortable: true,
+    renderCell: (row) => getStatusLabel(row.payment_method),
+  },
+  {
+    field: 'created_at', headerName: 'Fecha', width: 120, sortable: true,
+    renderCell: (row) => formatDate(row.created_at),
+  },
 ];
 
 export default function Orders() {
@@ -31,11 +46,15 @@ export default function Orders() {
 
   useEffect(() => { dispatch(fetchOrders()); }, [dispatch]);
 
-  const handleEdit = (row) => { setSelected(row); setDetailOpen(true); };
-  const handleStatusChange = async (updated) => {
-    await dispatch(updateOrder(updated));
-    setSelected(updated);
+  const handleEdit = (row) => {
+    dispatch(fetchOrderDetail(row.order_number)).then((res) => {
+      if (res.meta.requestStatus === 'fulfilled') {
+        setSelected(res.payload);
+        setDetailOpen(true);
+      }
+    });
   };
+
   const handleDeleteConfirm = async () => {
     setDeleting(true);
     await dispatch(deleteOrder(deleteTarget.id));
@@ -43,21 +62,39 @@ export default function Orders() {
     setDeleteTarget(null);
   };
 
-  const totalRevenue = items.filter((o) => o.status === 'completed').reduce((acc, o) => acc + o.total, 0);
+  const approvedStatuses = ['approved', 'shipped', 'delivered'];
+  const totalRevenue = items
+    .filter((o) => approvedStatuses.includes(o.status))
+    .reduce((acc, o) => acc + parseFloat(o.total || 0), 0);
 
   return (
     <>
-      <PageHeader title="Órdenes" subtitle={`${items.length} órdenes · ${formatCurrency(totalRevenue)} en ventas completadas`} />
+      <PageHeader
+        title="Pedidos"
+        subtitle={`${items.length} pedidos · ${formatCurrency(totalRevenue)} en ventas aprobadas`}
+      />
       <DataTable
         columns={columns}
         rows={items}
         loading={loading}
         onEdit={handleEdit}
         onDelete={setDeleteTarget}
-        searchPlaceholder="Buscar por cliente, estado, ID..."
+        searchPlaceholder="Buscar por cliente, estado, número de orden..."
       />
-      <OrderDetail open={detailOpen} onClose={() => setDetailOpen(false)} order={selected} onStatusChange={handleStatusChange} saving={saving} />
-      <ConfirmDialog open={Boolean(deleteTarget)} onClose={() => setDeleteTarget(null)} onConfirm={handleDeleteConfirm} loading={deleting} title={`¿Eliminar orden "${deleteTarget?.id}"?`} description="Se eliminará la orden permanentemente." />
+      <OrderDetail
+        open={detailOpen}
+        onClose={() => setDetailOpen(false)}
+        order={selected}
+        saving={saving}
+      />
+      <ConfirmDialog
+        open={Boolean(deleteTarget)}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleDeleteConfirm}
+        loading={deleting}
+        title={`¿Eliminar orden "${deleteTarget?.order_number}"?`}
+        description="Se eliminará la orden permanentemente."
+      />
     </>
   );
 }

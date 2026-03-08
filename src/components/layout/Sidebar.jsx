@@ -18,6 +18,7 @@ import WcIcon from '@mui/icons-material/Wc';
 import ViewCarouselIcon from '@mui/icons-material/ViewCarousel';
 import FeaturedPlayListIcon from '@mui/icons-material/FeaturedPlayList';
 import ArticleOutlinedIcon from '@mui/icons-material/ArticleOutlined';
+import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import { useThemeSettings } from '../../theme/ThemeContext';
 
 const SIDEBAR_WIDTH = 280;
@@ -34,6 +35,7 @@ const NAV_GROUPS = [
       { label: 'Atributos',         path: '/atributos',          icon: <TuneIcon /> },
       { label: 'Valores de attr.', path: '/valores-atributos',  icon: <StyleIcon /> },
       { label: 'Productos',        path: '/productos',          icon: <ShoppingBagOutlinedIcon /> },
+      { label: 'Pedidos',          path: '/pedidos',            icon: <ReceiptLongIcon /> },
       { label: 'Marcas',           path: '/marcas',             icon: <BrandingWatermarkIcon /> },
       { label: 'Géneros',          path: '/generos',            icon: <WcIcon /> },
       { label: 'Sliders',          path: '/sliders',            icon: <ViewCarouselIcon /> },
