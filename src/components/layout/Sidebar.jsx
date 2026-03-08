@@ -19,6 +19,7 @@ import ViewCarouselIcon from '@mui/icons-material/ViewCarousel';
 import FeaturedPlayListIcon from '@mui/icons-material/FeaturedPlayList';
 import ArticleOutlinedIcon from '@mui/icons-material/ArticleOutlined';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
+import PaymentIcon from '@mui/icons-material/Payment';
 import { useThemeSettings } from '../../theme/ThemeContext';
 
 const SIDEBAR_WIDTH = 280;
@@ -41,6 +42,7 @@ const NAV_GROUPS = [
       { label: 'Sliders',          path: '/sliders',            icon: <ViewCarouselIcon /> },
       { label: 'Feature Area',     path: '/feature-area',       icon: <FeaturedPlayListIcon /> },
       { label: 'Footer',           path: '/footer',             icon: <ArticleOutlinedIcon /> },
+      { label: 'Metodos de Pago', path: '/metodos-pago',       icon: <PaymentIcon /> },
     ],
   },
   {

@@ -14,6 +14,7 @@ import Gender           from '../features/gender/Categories';
 import Slider           from '../features/slider/Slider';
 import FeatureArea      from '../features/featureArea/FeatureArea';
 import FooterAdmin      from '../features/footer/Footer';
+import MetodosPago      from '../features/metodosPago/Categories';
 import Orders           from '../features/orders/Orders';
 import ThemeCustomizer  from '../theme/ThemeCustomizer';
 import Login            from '../features/auth/Login';
@@ -73,6 +74,7 @@ export default function AppRouter() {
             <Route path="/sliders"           element={<Slider />} />
             <Route path="/feature-area"      element={<FeatureArea />} />
             <Route path="/footer"            element={<FooterAdmin />} />
+            <Route path="/metodos-pago"      element={<MetodosPago />} />
             <Route path="/pedidos"           element={<Orders />} />
             <Route path="/personalizacion"   element={<ThemeCustomizer />} />
           </Route>

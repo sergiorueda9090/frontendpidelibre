@@ -13,6 +13,7 @@ import { sliderStore } from './sliderStore/sliderStore'
 import { featureAreaStore } from './featureAreaStore/featureAreaStore'
 import { footerStore } from './footerStore/footerStore'
 import ordersReducer from '../features/orders/ordersSlice'
+import { metodospagosStore } from './metodospagosStore/metodospagosStore'
 
 export const store = configureStore({
   reducer: {
@@ -30,5 +31,6 @@ export const store = configureStore({
     featureAreaStore: featureAreaStore.reducer,
     footerStore: footerStore.reducer,
     orders: ordersReducer,
+    metodospagosStore: metodospagosStore.reducer,
     },
 })
